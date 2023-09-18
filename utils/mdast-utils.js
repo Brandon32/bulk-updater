@@ -21,6 +21,11 @@ import { fetch } from '@adobe/fetch';
 import { mdast2docx } from '@adobe/helix-md2docx';
 import parseMarkdown from '@adobe/helix-html-pipeline/src/steps/parse-markdown.js';
 
+import { unified } from 'unified';
+import stringify from 'remark-stringify';
+import gfm from 'remark-gfm';
+import { remarkMatter } from '@adobe/helix-markdown-support/matter';
+import remarkGridTable from '@adobe/remark-gridtables';
 
 /**
  * It returns the first node of a given type that it finds in a tree
@@ -274,6 +279,25 @@ export const saveDocx = async (mdast, name, outputDir = 'output', logger = error
   await writeFile(`${outputDir}${outputDir && '/'}${fileName}`, buffer);
   console.log(`Saved ${fileName}`);
 };
+
+export const mdast2md = (mdast) => {
+  return unified()
+      .use(stringify, {
+          strong: '*',
+          emphasis: '_',
+          bullet: '-',
+          fence: '`',
+          fences: true,
+          incrementListMarker: true,
+          rule: '-',
+          ruleRepetition: 3,
+          ruleSpaces: false,
+      })
+      .use(gfm)
+      .use(remarkMatter)
+      .use(remarkGridTable)
+      .stringify(mdast);
+}
 
 /**
  * It fetches a URL and returns the text of the response
